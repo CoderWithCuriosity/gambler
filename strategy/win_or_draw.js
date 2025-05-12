@@ -1,5 +1,5 @@
 const { fetchMatches, getMatchOdds } = require('../api/matches');
-const { checkId, getEntryById } = require('../utils/fileManager');
+const { checkId, getEntryById, advanceCheckId, advanceGetEntryById } = require('../utils/fileManager');
 
 
 function formatUnixTimestamp(unix) {
@@ -26,9 +26,11 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
 
         ids.push(oddsData.shortCode);
 
-        if (!checkId(oddsData.shortCode)) continue; // Check if ID doesnt exists
+        // if (!checkId(oddsData.shortCode)) continue; // Check if ID doesnt exists
+        if(!advanceCheckId(oddsData.shortCode, oddsData.tournamentId)) continue; // Check if ID is already in the list
 
-        const sureMatch = getEntryById(oddsData.shortCode);
+        // const sureMatch = getEntryById(oddsData.shortCode);
+        const sureMatch = advanceGetEntryById(oddsData.shortCode);
         console.log(`Match Type: ${sureMatch.type}, Match ID: ${sureMatch.id}, Match Short Code: ${sureMatch.shortCode}, Home Score: ${sureMatch.homeScore}, Away Score: ${sureMatch.awayScore}`);
 
         if(sureMatch.type == undefined || sureMatch.type < 1 || sureMatch.type > 3) continue; // Check if type is valid

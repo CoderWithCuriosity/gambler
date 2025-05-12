@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Load the JSON file
-const data = require('./ids.json');
+const data = require('../ids.json');
 
 // Target last 4 digits
 const targetEnding = '9986';

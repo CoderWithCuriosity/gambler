@@ -62,12 +62,14 @@ async function checkAndStoreMatchData() {
     }
 
     for (let match of existingData) {
-      const oddsData = await getMatchOdds(match.id);
-      if (oddsData.matchStatus == "ended" && !match.isFinished) {
-        console.log(
-          `[${new Date().toLocaleTimeString()}] Match ended: ${match.id}`
-        );
-        await storeMatchResult(match, oddsData.homeScore, oddsData.awayScore);
+      if(!match.isFinished){
+        const oddsData = await getMatchOdds(match.id);
+        if (oddsData.matchStatus == "ended" && !match.isFinished) {
+          console.log(
+            `[${new Date().toLocaleTimeString()}] Match ended: ${match.id}`
+          );
+          await storeMatchResult(match, oddsData.homeScore, oddsData.awayScore);
+        }
       }
     }
 

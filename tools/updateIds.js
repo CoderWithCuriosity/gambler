@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { getMatchOdds } = require('./api/matches');
+const { getMatchOdds } = require('../api/matches');
 
 async function updateMatchesWithOdds(filePath) {
     const fullPath = path.resolve(filePath);

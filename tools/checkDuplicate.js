@@ -1,4 +1,4 @@
-const {getDuplicates} = require('./utils/fileManager');
+const {getDuplicates} = require('../utils/fileManager');
 
 const duplicate = getDuplicates();
 // console.log(duplicate);

@@ -46,6 +46,21 @@ function getEntryById(id) {
     }
 }
 
+function advanceGetEntryById(id, tournamentId) {
+    try {
+        const data = fs.readFileSync(FILE_PATH, 'utf8');
+        const entries = JSON.parse(data);
+        return entries.find(entry => 
+            String(entry.shortCode) === String(id) &&
+            entry.tournamentId === tournamentId
+        );
+    } catch (err) {
+        console.error('Failed to read or parse ids.json:', err.message);
+        return null;
+    }
+}
+
+
 // Function to get all duplicates (returns object with duplicates grouped by ID)
 function getDuplicates() {
     try {
@@ -91,11 +106,20 @@ function getAllById(id) {
     }
 }
 
+// Function to check if an ID and tournamentId exist (updated)
+function advanceCheckId(id, tournamentId) {
+    const entries = getStoredIds();
+    return entries.some(entry => entry.shortCode === id && entry.tournamentId === tournamentId);
+}
+
+
 module.exports = {
     getStoredIds,
     storeId,
     checkId,
     getEntryById,
     getDuplicates,
-    getAllById
+    getAllById,
+    advanceCheckId,
+    advanceGetEntryById
 };
