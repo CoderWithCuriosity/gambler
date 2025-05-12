@@ -1,20 +1,25 @@
 const { loginToBangBet } = require('./api/auth');
 const { placeBet } = require('./api/bet');
 const { win_or_draw } = require('./strategy/win_or_draw');
-const { getEntryById, storeId } = require('./utils/fileManager');
+const { getEntryById, storeId, advanceGetEntryById } = require('./utils/fileManager');
+const axios = require('axios');
 const BOT_TOKEN = '7299748052:AAHJKWCStrsnSg_e5YfWctTNnVQYUlNp8Hs';
 const USER_ID = '6524312327';
 
 
-async function sendMatchToTelegram(match, analysis) {
+async function sendMatchToTelegram(match, entry) {
     const baseUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
   
     const message = `
   ⚽  *${match.eventName}*
-  📅 *Time:* ${match.scheduledTime}
-  🏠 *Home Score:* ${analysis.homeScore} 
-  🛫 *Away Score:* ${analysis.awayScore} 
-    *Correct Score:* ${analysis.homeScore}:${analysis.awayScore}
+  📅 *Scheduled Time:* ${match.scheduledTime}
+  🏠 *Home Score:* ${entry.homeScore} 
+  🛫 *Away Score:* ${entry.awayScore} 
+    *Correct Score:* ${entry.homeScore}:${entry.awayScore}
+    *Match ID:* ${match.eventId}
+    *Tournament ID:* ${entry.tournamentId}
+    *Previous Match ID:* ${entry.id}
+    *Cloned Match Name:* ${entry.name}
     `.trim();
   
     try {
@@ -34,20 +39,15 @@ async function sendMatchToTelegram(match, analysis) {
 async function main() {
     console.log(`[${new Date().toLocaleTimeString()}] Running main function...`);
     
-    const [moneyMatches, ids, selections] = await win_or_draw(100);
+    const [moneyMatches, ids, selections, tournamentIds] = await win_or_draw(100);
     
     if (selections.length) {
         for(let i = 0; i < ids.length; i++) {
             const match = moneyMatches[i];
             const id = ids[i];
-            const entry = getEntryById(id);
-            if (!entry) {
-                storeId(id);
-                console.log(`Stored ID: ${id}`);
-                await sendMatchToTelegram(match, entry);
-            } else {
-                console.log(`ID ${id} already exists.`);
-            }
+            const entry = advanceGetEntryById(id, tournamentIds[i]);
+            if(!entry) continue;
+            await sendMatchToTelegram(match, entry);
         }
         
         const credentials = await loginToBangBet();

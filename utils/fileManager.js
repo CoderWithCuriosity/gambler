@@ -46,12 +46,13 @@ function getEntryById(id) {
     }
 }
 
-function advanceGetEntryById(id, tournamentId) {
+function advanceGetEntryById(idSuffix, tournamentId) {
     try {
         const data = fs.readFileSync(FILE_PATH, 'utf8');
         const entries = JSON.parse(data);
-        return entries.find(entry => 
-            String(entry.shortCode) === String(id) &&
+
+        return entries.find(entry =>
+            entry.id.endsWith(idSuffix) &&
             entry.tournamentId === tournamentId
         );
     } catch (err) {
@@ -59,6 +60,7 @@ function advanceGetEntryById(id, tournamentId) {
         return null;
     }
 }
+
 
 
 // Function to get all duplicates (returns object with duplicates grouped by ID)
