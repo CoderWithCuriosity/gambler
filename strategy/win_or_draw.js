@@ -7,7 +7,6 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
     console.log("Matches fetched:", matches.length);
     const selections = [];
     const ids = [];
-    const tournamentIds = [];
     const moneyMatches = [];
 
     // const nextRun = matches[matches.length - 1].scheduledTime;
@@ -17,13 +16,9 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
         if (selections.length >= matchCount) break; // Limit to matchCount selections
         const oddsData = await getMatchOdds(match.id);
         if (!oddsData?.marketList?.length) continue;
-
-        // if (!checkId(oddsData.shortCode)) continue; // Check if ID doesnt exists
-        if(!advanceCheckId(oddsData.shortCode, oddsData.tournamentId)) continue; // Check if ID is already in the list
-
         
         // const sureMatch = getEntryById(oddsData.shortCode);
-        const sureMatch = advanceGetEntryById(oddsData.shortCode, oddsData.tournamentId);
+        const sureMatch = advanceGetEntryById(oddsData.id);
         if (!sureMatch || sureMatch.type === undefined || sureMatch.type < 1 || sureMatch.type > 3) continue; // Check if sureMatch is valid
 
 
@@ -38,8 +33,7 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
 
         for (const market of oddsData.marketList) {
             if (market.name === "1x2") {
-                tournamentIds.push(oddsData.tournamentId);
-                ids.push(oddsData.shortCode);
+                ids.push(oddsData.id);
                 for (const detail of market.markets) {
                     for (const outcome of detail.outcomes) {
                         if (outcome.id != sureMatch.type) continue; // Check if outcome ID matches the type
@@ -70,7 +64,7 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
         console.log("No matches found with thoses ids. ");
     }
 
-    return [moneyMatches, ids, selections, tournamentIds];
+    return [moneyMatches, ids, selections];
 }
 
 module.exports = { win_or_draw };

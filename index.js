@@ -39,13 +39,13 @@ async function sendMatchToTelegram(match, entry) {
 async function main() {
     console.log(`[${new Date().toLocaleTimeString()}] Running main function...`);
     
-    const [moneyMatches, ids, selections, tournamentIds] = await win_or_draw(100);
+    const [moneyMatches, ids, selections] = await win_or_draw(100);
     
     if (selections.length) {
         for(let i = 0; i < ids.length; i++) {
             const match = moneyMatches[i];
             const id = ids[i];
-            const entry = advanceGetEntryById(id, tournamentIds[i]);
+            const entry = advanceGetEntryById(id);
             if(!entry) continue;
             await sendMatchToTelegram(match, entry);
         }
@@ -70,4 +70,4 @@ async function main() {
 main();
 
 // Then set it to run every 5 minutes (5 * 60 * 1000 milliseconds)
-// setInterval(main, 5 * 60 * 1000);
+setInterval(main, 3 * 60 * 1000);

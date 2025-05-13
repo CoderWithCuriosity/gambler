@@ -46,15 +46,39 @@ function getEntryById(id) {
     }
 }
 
-function advanceGetEntryById(idSuffix, tournamentId) {
+function getPreviousMatch(data, matchId) {
+  const idMap = {};
+
+  // Step 1: Build a map of numeric ID -> match object
+  for (const match of data) {
+    const numericId = parseInt(match.id.split(":")[2], 10);
+    idMap[numericId] = match;
+  }
+
+  // Step 2: Get the numeric ID from the input matchId
+  const numericMatchId = parseInt(matchId.split(":")[2], 10);
+  const floor = 1000000000; // Optional stop point
+
+  // Step 3: Go backwards in steps of 20000
+  for (
+    let previousId = numericMatchId - 20000;
+    previousId >= floor;
+    previousId -= 20000
+  ) {
+    if (idMap[previousId]) {
+      return idMap[previousId]; // Found a previous match!
+    }
+  }
+
+  // Step 4: No previous match found
+  return null;
+}
+
+function advanceGetEntryById(idSuffix) {
     try {
         const data = fs.readFileSync(FILE_PATH, 'utf8');
         const entries = JSON.parse(data);
-
-        return entries.find(entry =>
-            entry.id.endsWith(idSuffix) &&
-            entry.tournamentId === tournamentId
-        );
+        return getPreviousMatch(entries, idSuffix);
     } catch (err) {
         console.error('Failed to read or parse ids.json:', err.message);
         return null;
