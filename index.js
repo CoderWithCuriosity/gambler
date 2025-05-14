@@ -1,11 +1,10 @@
 const { loginToBangBet } = require('./api/auth');
 const { placeBet } = require('./api/bet');
 const { win_or_draw } = require('./strategy/win_or_draw');
-const { getEntryById, storeId, advanceGetEntryById } = require('./utils/fileManager');
+const { advanceGetEntryById } = require('./utils/fileManager');
 const axios = require('axios');
 const BOT_TOKEN = '7299748052:AAHJKWCStrsnSg_e5YfWctTNnVQYUlNp8Hs';
 const USER_ID = '6524312327';
-
 
 async function sendMatchToTelegram(match, entry) {
     const baseUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
@@ -17,7 +16,7 @@ async function sendMatchToTelegram(match, entry) {
   🛫 *Away Score:* ${entry.awayScore} 
     *Correct Score:* ${entry.homeScore}:${entry.awayScore}
     *Match ID:* ${match.eventId}
-    *Tournament ID:* ${entry.tournamentId}
+    *Tournament ID:* ${match.tournamentId}
     *Previous Match ID:* ${entry.id}
     *Cloned Match Name:* ${entry.name}
     `.trim();

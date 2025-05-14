@@ -1,32 +1,42 @@
 const { fetchMatches, getMatchOdds } = require('../api/matches');
-const { checkId, getEntryById, advanceCheckId, advanceGetEntryById } = require('../utils/fileManager');
-const path = '../betHistory.json';
+const { advanceGetEntryById } = require('../utils/fileManager');
+const axios = require('axios');
 
-// Ensure the file exists
-if (!fs.existsSync(path)) {
-    fs.writeFileSync(path, JSON.stringify([]));
-}
-
-// Load existing IDs
-function loadIDs() {
-    const data = fs.readFileSync(path, 'utf8');
-    return JSON.parse(data);
-}
-
-// Save ID to the list
-function saveID(id) {
-    const ids = loadIDs();
-
-    if (ids.includes(id)) {
-        return false;
-    } else {
-        ids.push(id);
-        fs.writeFileSync(path, JSON.stringify(ids, null, 2));
-        return true;
+async function sendMatchToTelegram(match) {
+    const BOT_TOKEN = '7299748052:AAHJKWCStrsnSg_e5YfWctTNnVQYUlNp8Hs';
+    const USER_ID = '6524312327';
+    const baseUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+  
+    const message = `
+  ⚽  *${match.eventName}*
+  📅 *Scheduled Time:* ${match.scheduledTime}
+    *Match ID:* ${match.eventId}
+    `.trim();
+  
+    try {
+      const response = await axios.post(baseUrl, {
+        chat_id: USER_ID,
+        text: message,
+        parse_mode: "Markdown"
+      });
+  
+      console.log('Message sent successfully.');
+      return response;
+    } catch (error) {
+      console.error('Error sending message:', error.message);
     }
+  }
+
+function checkMatchID(matchString, prefix = "138132") {
+    // Extract the match ID from the string, assuming format "vf:match:ID"
+    const parts = matchString.split(":");
+    if (parts.length !== 3) return false;
+
+    const matchID = parts[2];
+    return matchID.startsWith(prefix);
 }
 
-async function win_or_draw(amount = 100, matchCount = 9999) {
+async function correct_score(amount = 100, matchCount = 9999) {
     //Using match Count to limit the number of matches to fetch
     const matches = await fetchMatches();
     console.log("Matches fetched:", matches.length);
@@ -35,6 +45,11 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
     const moneyMatches = [];
 
     // const nextRun = matches[matches.length - 1].scheduledTime;
+    // const filteredMatches = matches.filter(match => checkMatchID(match.id));
+    // console.log("Filtered Matches:", filteredMatches.length);
+    // for(const match of filteredMatches) {
+    //     console.log(`Match ID: ${match.id}`);
+    // }
 
     for (const match of matches) {
 
@@ -51,6 +66,8 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
         if (timeDifference < 2 * 60 * 1000) continue;
 
         
+
+        // console.log(`Match ID: ${match.id}, Match Name: ${match.name}, Scheduled Time: ${new Date(match.scheduledTime).toLocaleString()}`);
         // const sureMatch = getEntryById(oddsData.shortCode);
         const sureMatch = advanceGetEntryById(oddsData.id);
         if (!sureMatch || sureMatch.type === undefined || sureMatch.type < 1 || sureMatch.type > 3) continue; // Check if sureMatch is valid
@@ -67,27 +84,32 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
             eventId: match.id,
             eventName: match.name,
             scheduledTime: localTime,
-            tournamentId: match.tournamentId,
+        });
+
+        await sendMatchToTelegram({
+            sportId: match.sportId,
+            eventId: match.id,
+            eventName: match.name,
+            scheduledTime: localTime,
         });
 
         for (const market of oddsData.marketList) {
-            if (market.name === "1x2") {
+            if (market.name === "Correct score") {
                 ids.push(oddsData.id);
                 for (const detail of market.markets) {
                     for (const outcome of detail.outcomes) {
-                        if(outcome.id != sureMatch.type) continue; // Check if outcome id matches sureMatch type
-                        if (selections.length >= 20) break; // Limit to matchCount selections
-                        if(!saveID(oddsData.id)) continue; // Check if ID is already saved
+                        if (outcome.id != sureMatch.type) continue; // Check if outcome ID matches the type
+                        if (selections.length > 5) break; // Limit to matchCount selections
                         selections.push({
                             sportId: match.sportId,
                             eventId: match.id,
                             producer: match.producer,
                             marketId: market.id,
-                            specifiers: "",
+                            specifiers: detail.specifiers,
                             outcomeId: outcome.id,
                             amount: amount,
                             odds: outcome.odds,
-                            specifierKeys: detail.specifierKeys,
+                            specifierKeys: "",
                             eventName: match.name,
                             scheduledTime: match.scheduledTime,
                             marketName: market.name,
@@ -107,4 +129,4 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
     return [moneyMatches, ids, selections];
 }
 
-module.exports = { win_or_draw };
+module.exports = { correct_score };
