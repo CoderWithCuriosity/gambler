@@ -49,17 +49,17 @@ async function main() {
             await sendMatchToTelegram(match, entry);
         }
         
-        const credentials = await loginToBangBet();
-        if (!credentials) {
-            console.log('Login failed.');
-            return;
-        }
-        console.log("Placing combo bet on:");
-        selections.forEach(sel =>
-            console.log(`${sel.eventName} (${sel.outcomeName} @ ${sel.odds})`)
-        );
+        // const credentials = await loginToBangBet();
+        // if (!credentials) {
+        //     console.log('Login failed.');
+        //     return;
+        // }
+        // console.log("Placing combo bet on:");
+        // selections.forEach(sel =>
+        //     console.log(`${sel.eventName} (${sel.outcomeName} @ ${sel.odds})`)
+        // );
 
-        await placeBet(credentials.token, credentials.secretKey, selections);
+        // await placeBet(credentials.token, credentials.secretKey, selections);
     } else {
         console.log("No valid selections found");
     }

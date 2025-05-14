@@ -47,32 +47,48 @@ function getEntryById(id) {
 }
 
 function getPreviousMatch(data, matchId) {
-  const idMap = {};
-
-  // Step 1: Build a map of numeric ID -> match object
-  for (const match of data) {
-    const numericId = parseInt(match.id.split(":")[2], 10);
-    idMap[numericId] = match;
-  }
-
-  // Step 2: Get the numeric ID from the input matchId
-  const numericMatchId = parseInt(matchId.split(":")[2], 10);
-  const floor = 1000000000; // Optional stop point
-
-  // Step 3: Go backwards in steps of 20000
-  for (
-    let previousId = numericMatchId - 20000;
-    previousId >= floor;
-    previousId -= 20000
-  ) {
-    if (idMap[previousId]) {
-      return idMap[previousId]; // Found a previous match!
+    const idMap = {};
+  
+    // Step 1: Build a map of numeric ID -> match object
+    for (const match of data) {
+      const numericId = parseInt(match.id.split(":")[2], 10);
+      idMap[numericId] = match;
     }
+  
+    // Step 2: Extract numeric ID from the given matchId
+    const numericMatchId = parseInt(matchId.split(":")[2], 10);
+    const floor = 1000000000; // Optional lower bound
+  
+    // Step 3: Step backwards to find a previous match WITH a duplicate
+    for (
+      let previousId = numericMatchId - 20000;
+      previousId >= floor;
+      previousId -= 20000
+    ) {
+      const baseMatch = idMap[previousId];
+      if (!baseMatch) continue;
+  
+      // Step 4: Check if this baseMatch has a duplicate
+      for (let i = 1; i <= 5; i++) {
+        const offsetId = previousId + i * 20000;
+        const compareMatch = idMap[offsetId];
+  
+        if (
+          compareMatch &&
+          baseMatch.homeScore === compareMatch.homeScore &&
+          baseMatch.awayScore === compareMatch.awayScore
+        ) {
+          // ✅ Found duplicate match, return the base match
+          return baseMatch;
+        }
+      }
+  
+      // If no duplicate found for this baseMatch, keep going
+    }
+  
+    // Step 5: No valid match with duplicate found
+    return null;
   }
-
-  // Step 4: No previous match found
-  return null;
-}
 
 function advanceGetEntryById(idSuffix) {
     try {

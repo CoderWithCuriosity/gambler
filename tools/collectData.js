@@ -2,7 +2,7 @@ const fs = require("fs");
 const axios = require("axios");
 
 // Import fetchMatches and getMatchOdds from your module
-const { fetchMatches, getMatchOdds } = require("./api/matches");
+const { fetchMatches, getMatchOdds } = require("../api/matches");
 
 // File to store match results
 const outputFile = "results.json";

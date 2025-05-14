@@ -1,5 +1,6 @@
 const { fetchMatches, getMatchOdds } = require('../api/matches');
 const { checkId, getEntryById, advanceCheckId, advanceGetEntryById } = require('../utils/fileManager');
+const fs = require('fs');
 const path = '../betHistory.json';
 
 // Ensure the file exists
@@ -37,20 +38,22 @@ async function win_or_draw(amount = 100, matchCount = 9999) {
     // const nextRun = matches[matches.length - 1].scheduledTime;
 
     for (const match of matches) {
+        //only include matches that are scheduled at least 2 minutes into the future
+        const matchStartTime = new Date(match.scheduledTime).getTime();
+        const now = Date.now();
+        const timeDifference = matchStartTime - now;
+        
+        // Skip if match starts in less than 2 minutes
+        if (timeDifference < 2 * 60 * 1000) continue;
+
+        console.log(`Match ID: ${match.id}, Match Name: ${match.name}, Match Start Time: ${match.scheduledTime}`);
+
 
         if (selections.length >= matchCount) break; // Limit to matchCount selections
         const oddsData = await getMatchOdds(match.id);
         if (!oddsData?.marketList?.length) continue;
 
-        //only include matches that are scheduled at least 2 minutes into the future
-        const matchStartTime = new Date(match.scheduledTime).getTime();
-        const now = Date.now();
-        const timeDifference = matchStartTime - now;
-
-        // Skip if match starts in less than 2 minutes
-        if (timeDifference < 2 * 60 * 1000) continue;
-
-        
+                
         // const sureMatch = getEntryById(oddsData.shortCode);
         const sureMatch = advanceGetEntryById(oddsData.id);
         if (!sureMatch || sureMatch.type === undefined || sureMatch.type < 1 || sureMatch.type > 3) continue; // Check if sureMatch is valid
